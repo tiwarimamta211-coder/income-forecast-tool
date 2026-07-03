@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Income Forecast Tool | IncomeAIHub</title>
+<meta name="description" content="Forecast your future income across multiple sources with AI-powered Hinglish insights. Built for Indian freelancers, CAs and small businesses.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0a0f;
+    --bg-panel:#12121a;
+    --bg-panel-2:#181822;
+    --border:#26262f;
+    --text:#f2f1ec;
+    --text-dim:#9a99a6;
+    --text-faint:#65646f;
+    --gold:#d4af37;
+    --gold-soft:#f0d78a;
+    --emerald:#10b981;
+    --violet:#8b5cf6;
+    --red:#ef4444;
+    --radius:14px;
+    --radius-sm:8px;
+    --shadow: 0 10px 40px rgba(0,0,0,0.45);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(139,92,246,0.10), transparent 60%),
+      radial-gradient(1000px 500px at 10% 0%, rgba(212,175,55,0.08), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'DM Sans', sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:'Syne', sans-serif; margin:0; letter-spacing:-0.01em;}
+  .mono{font-family:'DM Mono', monospace;}
+  a{color:inherit;}
+  ::selection{background:var(--gold); color:#0a0a0f;}
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:#2c2c38; border-radius:10px;}
+
+  .wrap{max-width:1180px; margin:0 auto; padding:0 20px;}
+
+  /* Header */
+  header{
+    position:sticky; top:0; z-index:40;
+    background:rgba(10,10,15,0.82);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  .headrow{display:flex; align-items:center; justify-content:space-between; padding:16px 20px;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand .mark{
+    width:34px; height:34px; border-radius:9px;
+    background:linear-gradient(135deg, var(--gold), #a9852b);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Syne'; font-weight:800; color:#0a0a0f; font-size:16px;
+  }
+  .brand-name{font-family:'Syne'; font-weight:700; font-size:16px;}
+  .brand-name span{color:var(--gold);}
+  .brand-sub{font-size:11px; color:var(--text-faint); font-family:'DM Mono';}
+  .head-actions{display:flex; gap:10px; align-items:center;}
+  .btn{
+    border:1px solid var(--border);
+    background:var(--bg-panel-2);
+    color:var(--text);
+    padding:10px 16px;
+    border-radius:10px;
+    font-family:'DM Sans'; font-weight:600; font-size:13px;
+    cursor:pointer;
+    transition:all .18s ease;
+    white-space:nowrap;
+  }
+  .btn:hover{border-color:#3b3b48; transform:translateY(-1px);}
+  .btn-gold{
+    background:linear-gradient(135deg, var(--gold), #b8912b);
+    color:#0a0a0f; border:none;
+  }
+  .btn-gold:hover{filter:brightness(1.08);}
+  .btn-ghost{background:transparent;}
+  .btn-sm{padding:7px 12px; font-size:12px; border-radius:8px;}
+  .btn-emerald{background:linear-gradient(135deg,#16d39a,#0d9668); color:#04140f; border:none;}
+  .btn-violet{background:linear-gradient(135deg,#a78bfa,#7c4feb); color:#12081f; border:none;}
+  .btn-danger{background:transparent; border:1px solid #4a2323; color:#f0a3a3;}
+  .btn-danger:hover{background:#2a1414;}
+  .btn:disabled{opacity:.5; cursor:not-allowed; transform:none;}
+
+  /* Hero */
+  .hero{padding:56px 20px 28px;}
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'DM Mono'; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--emerald); background:rgba(16,185,129,0.08);
+    border:1px solid rgba(16,185,129,0.25); padding:6px 12px; border-radius:100px;
+    margin-bottom:18px;
+  }
+  .eyebrow::before{content:''; width:6px; height:6px; border-radius:50%; background:var(--emerald); box-shadow:0 0 8px var(--emerald);}
+  .hero h1{font-size:clamp(28px, 5vw, 46px); max-width:760px; font-weight:800;}
+  .hero h1 em{font-style:normal; color:var(--gold);}
+  .hero p{color:var(--text-dim); max-width:600px; font-size:15.5px; margin-top:14px;}
+
+  /* Layout */
+  .grid{display:grid; grid-template-columns: 400px 1fr; gap:22px; padding:10px 20px 40px; align-items:start;}
+  @media (max-width: 940px){ .grid{grid-template-columns:1fr;} }
+
+  .panel{
+    background:var(--bg-panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:22px;
+    box-shadow:var(--shadow);
+  }
+  .panel + .panel{margin-top:20px;}
+  .panel h2{font-size:18px; margin-bottom:4px;}
+  .panel .desc{color:var(--text-faint); font-size:12.5px; margin-bottom:18px;}
+
+  label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
+  input, select{
+    width:100%;
+    background:#0e0e15;
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:9px;
+    font-family:'DM Sans'; font-size:13.5px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  input:focus, select:focus{border-color:var(--gold);}
+  input[type=range]{padding:0; accent-color:var(--gold); height:6px;}
+  .field{margin-bottom:14px;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .row3{display:grid; grid-template-columns:1.4fr 0.9fr 0.9fr; gap:10px;}
+
+  /* Income source cards */
+  .source-item{
+    background:var(--bg-panel-2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
+    position:relative;
+  }
+  .source-item .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .source-item .top .badge{
+    font-family:'DM Mono'; font-size:10px; padding:3px 8px; border-radius:100px;
+    text-transform:uppercase; letter-spacing:.04em;
+  }
+  .badge.salary{background:rgba(139,92,246,0.15); color:#c4b5fd; border:1px solid rgba(139,92,246,0.3);}
+  .badge.freelance{background:rgba(212,175,55,0.15); color:var(--gold-soft); border:1px solid rgba(212,175,55,0.3);}
+  .badge.business{background:rgba(16,185,129,0.15); color:#6ee7b7; border:1px solid rgba(16,185,129,0.3);}
+  .badge.invest{background:rgba(239,68,68,0.12); color:#fca5a5; border:1px solid rgba(239,68,68,0.28);}
+  .remove-src{
+    background:none; border:none; color:var(--text-faint); cursor:pointer; font-size:16px; line-height:1;
+    padding:2px 6px;
+  }
+  .remove-src:hover{color:var(--red);}
+
+  .scenario-toggle{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:16px;}
+  .scenario-toggle button{
+    padding:10px 6px; font-size:12px; border-radius:9px;
+    border:1px solid var(--border); background:#0e0e15; color:var(--text-dim); cursor:pointer;
+    font-family:'DM Sans'; font-weight:600;
+  }
+  .scenario-toggle button.active{border-color:var(--gold); color:var(--gold); background:rgba(212,175,55,0.08);}
+
+  .range-label{display:flex; justify-content:space-between; font-size:12px; color:var(--text-dim); margin-bottom:6px;}
+  .range-label b{color:var(--gold); font-family:'DM Mono';}
+
+  /* Summary cards */
+  .summary-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px;}
+  @media (max-width:760px){ .summary-grid{grid-template-columns:1fr 1fr;} }
+  .stat{
+    background:var(--bg-panel-2); border:1px solid var(--border); border-radius:12px; padding:16px;
+  }
+  .stat .label{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; font-family:'DM Mono';}
+  .stat .value{font-family:'Syne'; font-size:22px; font-weight:700; margin-top:6px;}
+  .stat .value.gold{color:var(--gold);}
+  .stat .value.emerald{color:var(--emerald);}
+  .stat .value.violet{color:#c4b5fd;}
+  .stat .trend{font-size:11.5px; margin-top:4px; font-family:'DM Mono';}
+  .trend.up{color:var(--emerald);}
+  .trend.down{color:var(--red);}
+
+  .chart-box{background:var(--bg-panel-2); border:1px solid var(--border); border-radius:12px; padding:18px; height:320px;}
+
+  table{width:100%; border-collapse:collapse; font-size:13px; margin-top:16px;}
+  thead th{
+    text-align:left; font-family:'DM Mono'; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--text-faint); padding:10px 8px; border-bottom:1px solid var(--border);
+  }
+  tbody td{padding:10px 8px; border-bottom:1px solid #1c1c24; font-family:'DM Mono'; font-size:12.5px;}
+  tbody tr:hover{background:#14141c;}
+  .table-wrap{max-height:340px; overflow-y:auto; border-radius:10px;}
+
+  /* AI Insight panel */
+  .ai-box{
+    background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(212,175,55,0.05));
+    border:1px solid rgba(139,92,246,0.25);
+    border-radius:12px; padding:18px; margin-top:16px;
+  }
+  .ai-head{display:flex; align-items:center; gap:8px; margin-bottom:10px;}
+  .ai-dot{width:8px; height:8px; border-radius:50%; background:var(--violet); box-shadow:0 0 8px var(--violet);}
+  .ai-title{font-family:'Syne'; font-weight:700; font-size:14px;}
+  .ai-content{font-size:13.5px; color:#e6e5f0; white-space:pre-wrap; line-height:1.7;}
+  .ai-loading{color:var(--text-faint); font-family:'DM Mono'; font-size:12.5px;}
+  .ai-loading .dots::after{content:'⏳ Generating insights...';}
+
+  /* Saved forecasts */
+  .saved-list{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+  .saved-item{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--bg-panel-2); border:1px solid var(--border); border-radius:9px; padding:10px 12px;
+  }
+  .saved-item .meta{font-size:12px;}
+  .saved-item .meta .name{font-weight:600; font-size:13px;}
+  .saved-item .meta .date{color:var(--text-faint); font-family:'DM Mono'; font-size:10.5px;}
+  .saved-actions{display:flex; gap:6px;}
+
+  /* Modal */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(6,6,10,0.75); backdrop-filter:blur(4px);
+    display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal{
+    background:var(--bg-panel); border:1px solid var(--border); border-radius:16px;
+    max-width:560px; width:100%; max-height:85vh; overflow-y:auto; padding:26px;
+    box-shadow:var(--shadow);
+  }
+  .modal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;}
+  .modal-close{background:none; border:none; color:var(--text-dim); font-size:22px; cursor:pointer;}
+  .guide-step{margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid #1c1c24;}
+  .guide-step:last-child{border:none;}
+  .guide-step .num{
+    display:inline-flex; width:22px; height:22px; border-radius:6px; background:rgba(212,175,55,0.15);
+    color:var(--gold); align-items:center; justify-content:center; font-family:'DM Mono'; font-size:12px; margin-right:8px;
+  }
+  .guide-step h4{display:inline; font-family:'DM Sans'; font-size:14px; font-weight:700;}
+  .guide-step p{font-size:13px; color:var(--text-dim); margin:8px 0 0 30px;}
+
+  /* AdSense slots */
+  .ad-slot{
+    border:1px dashed #2c2c38; border-radius:10px; padding:14px; text-align:center;
+    color:var(--text-faint); font-size:11px; font-family:'DM Mono'; margin:20px 0;
+    background:#0e0e14;
+  }
+
+  footer{border-top:1px solid var(--border); padding:26px 20px; text-align:center; color:var(--text-faint); font-size:12px;}
+  footer .fname{color:var(--gold); font-family:'DM Mono';}
+
+  .hint{font-size:11px; color:var(--text-faint); margin-top:6px;}
+  .flex-between{display:flex; justify-content:space-between; align-items:center;}
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--bg-panel-2); border:1px solid var(--gold); color:var(--text);
+    padding:12px 20px; border-radius:10px; font-size:13px; z-index:200;
+    opacity:0; transition:all .25s ease; pointer-events:none;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  @media print{
+    header, .panel.no-print, footer, .ad-slot, .btn{display:none !important;}
+    body{background:#fff; color:#000;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="headrow wrap">
+    <div class="brand">
+      <div class="mark">₹</div>
+      <div>
+        <div class="brand-name">Income<span>AIHub</span></div>
+        <div class="brand-sub">Income Forecast Tool</div>
+      </div>
+    </div>
+    <div class="head-actions">
+      <button class="btn btn-ghost" id="guideBtn">📘 Hindi Guide</button>
+      <button class="btn btn-gold" id="apiKeyBtn">🔑 API Setup</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero wrap">
+  <div class="eyebrow">AI-Powered • Multi-Source Forecasting</div>
+  <h1>Apni future income ka <em>sach</em> dekhiye — abhi.</h1>
+  <p>Multiple income sources add karein, growth scenarios choose karein, aur AI se personalized Hinglish insights paayein — CA firms, freelancers aur MSMEs ke liye banaya gaya.</p>
+</section>
+
+<div class="grid wrap">
+
+  <!-- LEFT: Inputs -->
+  <div>
+    <div class="panel">
+      <h2>💼 Income Sources</h2>
+      <div class="desc">Apne saare income sources add karein — salary, freelance, business, ya investments.</div>
+
+      <div id="sourceList"></div>
+
+      <div class="field" style="margin-top:14px;">
+        <div class="row3">
+          <div>
+            <label>Source Name</label>
+            <input type="text" id="srcName" placeholder="e.g. Web Dev Projects">
+          </div>
+          <div>
+            <label>Monthly ₹</label>
+            <input type="number" id="srcAmount" placeholder="25000">
+          </div>
+          <div>
+            <label>Category</label>
+            <select id="srcCategory">
+              <option value="freelance">Freelance</option>
+              <option value="salary">Salary</option>
+              <option value="business">Business</option>
+              <option value="invest">Investment</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-ghost" style="width:100%; margin-top:10px;" id="addSourceBtn">+ Add Income Source</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>⚙️ Forecast Settings</h2>
+      <div class="desc">Scenario aur time horizon set karein.</div>
+
+      <label>Scenario</label>
+      <div class="scenario-toggle" id="scenarioToggle">
+        <button data-val="conservative">🟠 Conservative</button>
+        <button data-val="realistic" class="active">🟢 Realistic</button>
+        <button data-val="optimistic">🟣 Optimistic</button>
+      </div>
+
+      <div class="range-label"><span>Forecast Period</span><b id="horizonVal">12 months</b></div>
+      <input type="range" id="horizonRange" min="3" max="60" step="1" value="12">
+
+      <div class="field" style="margin-top:16px;">
+        <div class="range-label"><span>Assumed Monthly Growth Rate</span><b id="growthVal">2.0%</b></div>
+        <input type="range" id="growthRange" min="-5" max="15" step="0.5" value="2">
+        <div class="hint">Realistic scenario mein yeh auto-adjust hoga per source category.</div>
+      </div>
+
+      <div class="field" style="margin-top:16px;">
+        <label>Average Monthly Expenses ₹ (optional)</label>
+        <input type="number" id="expenseInput" placeholder="30000">
+      </div>
+
+      <button class="btn btn-gold" style="width:100%; margin-top:6px;" id="calcBtn">📊 Generate Forecast</button>
+    </div>
+
+    <div class="panel">
+      <h2>💾 Saved Forecasts</h2>
+      <div class="desc">Apne forecasts save karein aur baad mein compare karein.</div>
+      <button class="btn btn-ghost" style="width:100%;" id="saveForecastBtn">Save Current Forecast</button>
+      <div class="saved-list" id="savedList"></div>
+    </div>
+
+    <div class="ad-slot">Advertisement · 300×100</div>
+  </div>
+
+  <!-- RIGHT: Results -->
+  <div>
+    <div class="panel">
+      <div class="flex-between">
+        <h2>📈 Forecast Overview</h2>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-sm btn-ghost" id="exportCsvBtn">⬇ CSV</button>
+          <button class="btn btn-sm btn-ghost" id="printBtn">🖨 Print</button>
+        </div>
+      </div>
+      <div class="desc">Apna projected income yahan dekhein, month-by-month breakdown ke saath.</div>
+
+      <div class="summary-grid">
+        <div class="stat">
+          <div class="label">Total Projected</div>
+          <div class="value gold" id="statTotal">₹0</div>
+          <div class="trend" id="statTotalTrend"></div>
+        </div>
+        <div class="stat">
+          <div class="label">Avg Monthly</div>
+          <div class="value" id="statAvg">₹0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Net After Expenses</div>
+          <div class="value emerald" id="statNet">₹0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Final Month Est.</div>
+          <div class="value violet" id="statFinal">₹0</div>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <canvas id="forecastChart"></canvas>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Month</th><th>Gross Income</th><th>Expenses</th><th>Net</th><th>Cumulative</th></tr>
+          </thead>
+          <tbody id="forecastTableBody">
+            <tr><td colspan="5" style="color:var(--text-faint); text-align:center; padding:24px;">Forecast generate karne ke liye "Generate Forecast" click karein</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ai-box">
+        <div class="ai-head">
+          <div class="ai-dot"></div>
+          <div class="ai-title">AI Income Insights (Hinglish)</div>
+        </div>
+        <div class="ai-content" id="aiContent">Forecast generate karne ke baad AI insights yahan aayenge — growth tips, risk factors aur recommendations ke saath.</div>
+      </div>
+    </div>
+
+    <div class="ad-slot">Advertisement · 728×90</div>
+  </div>
+</div>
+
+<footer>
+  Built with ❤️ by <span class="fname">M.Dev, Raipur, Chhattisgarh</span> · Part of the IncomeAIHub Suite · Data stored locally in your browser only.
+</footer>
+
+<!-- API Key Modal -->
+<div class="modal-overlay" id="apiModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>🔑 Claude API Setup</h3>
+      <button class="modal-close" data-close="apiModal">×</button>
+    </div>
+    <p style="color:var(--text-dim); font-size:13px;">AI insights ke liye apni Anthropic API key daalein. Key sirf aapke browser mein (localStorage) save hoti hai — kahin bhi bheji nahi jaati siwaye Anthropic API ke.</p>
+    <div class="field" style="margin-top:14px;">
+      <label>Anthropic API Key</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
+    </div>
+    <div class="hint">Key nahi hai? Koi baat nahi — tool demo/fallback mode mein bhi kaam karega with sample Hinglish insights.</div>
+    <button class="btn btn-gold" style="width:100%; margin-top:16px;" id="saveApiKeyBtn">Save Key</button>
+  </div>
+</div>
+
+<!-- Hindi Guide Modal -->
+<div class="modal-overlay" id="guideModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>📘 Istemaal Guide (Hindi)</h3>
+      <button class="modal-close" data-close="guideModal">×</button>
+    </div>
+    <div class="guide-step">
+      <span class="num">1</span><h4>Income Sources Add Karein</h4>
+      <p>Apni saari income sources (salary, freelance projects, business, investments) ka naam aur monthly amount daal kar "Add Income Source" dabayein.</p>
+    </div>
+    <div class="guide-step">
+      <span class="num">2</span><h4>Scenario Choose Karein</h4>
+      <p>Conservative (kam growth), Realistic (average growth), ya Optimistic (high growth) mein se apna scenario select karein.</p>
+    </div>
+    <div class="guide-step">
+      <span class="num">3</span><h4>Forecast Period Set Karein</h4>
+      <p>Slider se decide karein kitne months ka forecast chahiye — 3 mahine se le kar 5 saal tak.</p>
+    </div>
+    <div class="guide-step">
+      <span class="num">4</span><h4>Generate Forecast Dabayein</h4>
+      <p>Graph, table aur AI insights automatically generate ho jayenge based on aapke data par.</p>
+    </div>
+    <div class="guide-step">
+      <span class="num">5</span><h4>Save & Export</h4>
+      <p>Apna forecast save kar sakte hain future reference ke liye, ya CSV mein export kar sakte hain clients ko dikhane ke liye.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== STATE ===================== */
+let sources = [];
+let forecastData = [];
+let scenario = 'realistic';
+let chartInstance = null;
+
+const CATEGORY_GROWTH = {
+  salary:   { conservative: 0.2, realistic: 0.5, optimistic: 1.0 },
+  freelance:{ conservative: 0.5, realistic: 2.0, optimistic: 4.5 },
+  business: { conservative: 0.8, realistic: 2.5, optimistic: 5.5 },
+  invest:   { conservative: 0.3, realistic: 1.2, optimistic: 3.0 }
+};
+
+/* ===================== UTIL ===================== */
+function fmtINR(n){
+  n = Math.round(n);
+  return '₹' + n.toLocaleString('en-IN');
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 2400);
+}
+function uid(){ return 'src_' + Math.random().toString(36).slice(2,9); }
+
+/* ===================== SOURCES ===================== */
+function renderSources(){
+  const list = document.getElementById('sourceList');
+  if(sources.length === 0){
+    list.innerHTML = '<div style="color:var(--text-faint); font-size:12.5px; padding:10px 0;">Abhi tak koi income source add nahi hui.</div>';
+    return;
+  }
+  list.innerHTML = sources.map(s => `
+    <div class="source-item" data-id="${s.id}">
+      <div class="top">
+        <span class="badge ${s.category}">${s.category}</span>
+        <button class="remove-src" data-id="${s.id}">×</button>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-weight:600; font-size:13.5px;">${escapeHtml(s.name)}</div>
+        <div class="mono" style="color:var(--gold); font-size:13.5px;">${fmtINR(s.amount)}/mo</div>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.remove-src').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const id = e.currentTarget.dataset.id;
+      sources = sources.filter(s => s.id !== id);
+      renderSources();
+      saveSourcesToStorage();
+    });
+  });
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+document.getElementById('addSourceBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('srcName').value.trim();
+  const amount = parseFloat(document.getElementById('srcAmount').value);
+  const category = document.getElementById('srcCategory').value;
+  if(!name || !amount || amount <= 0){
+    toast('⚠️ Naam aur valid amount dono zaroori hain');
+    return;
+  }
+  sources.push({ id: uid(), name, amount, category });
+  document.getElementById('srcName').value = '';
+  document.getElementById('srcAmount').value = '';
+  renderSources();
+  saveSourcesToStorage();
+  toast('✅ Income source added');
+});
+
+function saveSourcesToStorage(){
+  localStorage.setItem('ifh_current_sources', JSON.stringify(sources));
+}
+function loadSourcesFromStorage(){
+  const raw = localStorage.getItem('ifh_current_sources');
+  if(raw){
+    try{ sources = JSON.parse(raw); }catch(e){ sources = []; }
+  }
+}
+
+/* ===================== SCENARIO / SETTINGS ===================== */
+document.getElementById('scenarioToggle').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  scenario = btn.dataset.val;
+  document.querySelectorAll('#scenarioToggle button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  updateGrowthSliderFromScenario();
+});
+
+function updateGrowthSliderFromScenario(){
+  const map = { conservative: 0.5, realistic: 2.0, optimistic: 4.5 };
+  document.getElementById('growthRange').value = map[scenario];
+  document.getElementById('growthVal').textContent = map[scenario].toFixed(1) + '%';
+}
+
+document.getElementById('horizonRange').addEventListener('input', (e)=>{
+  document.getElementById('horizonVal').textContent = e.target.value + ' months';
+});
+document.getElementById('growthRange').addEventListener('input', (e)=>{
+  document.getElementById('growthVal').textContent = parseFloat(e.target.value).toFixed(1) + '%';
+});
+
+/* ===================== FORECAST ENGINE ===================== */
+function generateForecast(){
+  if(sources.length === 0){
+    toast('⚠️ Pehle kam se kam ek income source add karein');
+    return;
+  }
+  const horizon = parseInt(document.getElementById('horizonRange').value);
+  const manualGrowth = parseFloat(document.getElementById('growthRange').value) / 100;
+  const expenses = parseFloat(document.getElementById('expenseInput').value) || 0;
+
+  forecastData = [];
+  let cumulative = 0;
+
+  // per-source running amount
+  const running = sources.map(s => ({ ...s, current: s.amount }));
+
+  for(let m = 1; m <= horizon; m++){
+    let gross = 0;
+    running.forEach(s=>{
+      const catRate = (CATEGORY_GROWTH[s.category] && CATEGORY_GROWTH[s.category][scenario] !== undefined)
+        ? CATEGORY_GROWTH[s.category][scenario] / 100
+        : manualGrowth;
+      // blend category baseline with user slider influence
+      const rate = (catRate + manualGrowth) / 2;
+      if(m > 1){ s.current = s.current * (1 + rate); }
+      gross += s.current;
+    });
+    const net = gross - expenses;
+    cumulative += net;
+    forecastData.push({ month: m, gross, expenses, net, cumulative });
+  }
+
+  renderResults(horizon);
+  generateAIInsights(horizon, expenses);
+}
+
+document.getElementById('calcBtn').addEventListener('click', generateForecast);
+
+/* ===================== RENDER RESULTS ===================== */
+function renderResults(horizon){
+  const totalGross = forecastData.reduce((a,d)=>a+d.gross,0);
+  const avgMonthly = totalGross / forecastData.length;
+  const totalNet = forecastData.reduce((a,d)=>a+d.net,0);
+  const finalMonth = forecastData[forecastData.length-1].gross;
+  const firstMonth = forecastData[0].gross;
+  const growthPct = ((finalMonth - firstMonth) / firstMonth) * 100;
+
+  document.getElementById('statTotal').textContent = fmtINR(totalGross);
+  document.getElementById('statTotalTrend').textContent = (growthPct>=0?'▲ ':'▼ ') + Math.abs(growthPct).toFixed(1) + '% over period';
+  document.getElementById('statTotalTrend').className = 'trend ' + (growthPct>=0?'up':'down');
+  document.getElementById('statAvg').textContent = fmtINR(avgMonthly);
+  document.getElementById('statNet').textContent = fmtINR(totalNet);
+  document.getElementById('statFinal').textContent = fmtINR(finalMonth);
+
+  // table
+  const tbody = document.getElementById('forecastTableBody');
+  tbody.innerHTML = forecastData.map(d => `
+    <tr>
+      <td>M${d.month}</td>
+      <td style="color:var(--gold);">${fmtINR(d.gross)}</td>
+      <td style="color:var(--text-faint);">${fmtINR(d.expenses)}</td>
+      <td style="color:${d.net>=0?'var(--emerald)':'var(--red)'};">${fmtINR(d.net)}</td>
+      <td>${fmtINR(d.cumulative)}</td>
+    </tr>
+  `).join('');
+
+  // chart
+  const ctx = document.getElementById('forecastChart').getContext('2d');
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: forecastData.map(d=>'M'+d.month),
+      datasets: [
+        {
+          label: 'Gross Income',
+          data: forecastData.map(d=>Math.round(d.gross)),
+          borderColor: '#d4af37',
+          backgroundColor: 'rgba(212,175,55,0.08)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          borderWidth: 2.5
+        },
+        {
+          label: 'Net Income',
+          data: forecastData.map(d=>Math.round(d.net)),
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16,185,129,0.06)',
+          fill: true,
+          tension: 0.35,
+          pointRadius: 0,
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#9a99a6', font: { family: 'DM Sans', size: 11 } } },
+        tooltip: {
+          backgroundColor: '#181822',
+          borderColor: '#26262f',
+          borderWidth: 1,
+          titleColor: '#f2f1ec',
+          bodyColor: '#f2f1ec',
+          callbacks: { label: (c) => c.dataset.label + ': ' + fmtINR(c.parsed.y) }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#65646f', font:{size:10} }, grid: { color: '#1c1c24' } },
+        y: { ticks: { color: '#65646f', font:{size:10}, callback: (v)=>'₹'+(v/1000)+'k' }, grid: { color: '#1c1c24' } }
+      }
+    }
+  });
+}
+
+/* ===================== AI INSIGHTS (Claude API + fallback) ===================== */
+async function generateAIInsights(horizon, expenses){
+  const aiContent = document.getElementById('aiContent');
+  aiContent.innerHTML = '<span class="ai-loading"><span class="dots"></span></span>';
+
+  const apiKey = localStorage.getItem('ifh_api_key');
+  const totalGross = forecastData.reduce((a,d)=>a+d.gross,0);
+  const avgMonthly = totalGross / forecastData.length;
+  const firstMonth = forecastData[0].gross;
+  const lastMonth = forecastData[forecastData.length-1].gross;
+  const growthPct = (((lastMonth-firstMonth)/firstMonth)*100).toFixed(1);
+  const sourceNames = sources.map(s=>`${s.name} (${s.category}, ₹${s.amount}/mo)`).join(', ');
+
+  const prompt = `Tum ek Indian financial advisor ho jo freelancers aur small business owners ko Hinglish (Hindi+English mix, Roman script) mein advice dete ho. Yeh data hai:
+- Income sources: ${sourceNames}
+- Forecast period: ${horizon} months
+- Scenario: ${scenario}
+- Average monthly income: ₹${Math.round(avgMonthly)}
+- Growth over period: ${growthPct}%
+- Monthly expenses: ₹${expenses}
+
+3-4 short paragraphs mein Hinglish insights do: (1) overall forecast ka summary, (2) risk factors ya concerns, (3) 2-3 concrete tips income badhane ke liye. Friendly, practical tone rakho. Emoji thoda use kar sakte ho.`;
+
+  if(!apiKey){
+    setTimeout(()=>{ aiContent.textContent = fallbackInsight(avgMonthly, growthPct, expenses, sources); }, 700);
+    return;
+  }
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = (data.content || []).filter(c=>c.type==='text').map(c=>c.text).join('\n');
+    aiContent.textContent = text || fallbackInsight(avgMonthly, growthPct, expenses, sources);
+  }catch(err){
+    aiContent.textContent = fallbackInsight(avgMonthly, growthPct, expenses, sources);
+  }
+}
+
+function fallbackInsight(avgMonthly, growthPct, expenses, sources){
+  const netMonthly = avgMonthly - expenses;
+  const topSource = sources.reduce((a,b)=> a.amount > b.amount ? a : b, sources[0]);
+  return `📊 Aapki average monthly income ₹${Math.round(avgMonthly).toLocaleString('en-IN')} around rehne ka anumaan hai, jisme ${growthPct}% growth expected hai selected period mein. Sabse bada contribution "${topSource.name}" se aa raha hai — isse stable rakhna priority honi chahiye.
+
+⚠️ Risk factor: agar sirf ek ya do sources par depend karte hain, toh income volatility ka risk zyada hota hai. Diversify karna helpful rahega — kam se kam 3 alag income streams maintain karne ki koshish karein.
+
+💡 Tips: (1) Apne highest-paying source ko scale karne ke liye recurring/retainer clients dhoondein. (2) Expenses ko income ke 60-70% se kam rakhne ki koshish karein taaki savings build ho sake. (3) Naye skills ya services add karke ek naya income stream shuru karne par vichaar karein — isse forecast ka growth trend aur strong ho sakta hai.
+
+(Yeh demo insights hain — accurate personalized advice ke liye API Setup se apni Claude API key add karein.)`;
+}
+
+/* ===================== SAVE / LOAD FORECASTS ===================== */
+function getSavedForecasts(){
+  const raw = localStorage.getItem('ifh_saved_forecasts');
+  return raw ? JSON.parse(raw) : [];
+}
+function renderSavedList(){
+  const list = getSavedForecasts();
+  const el = document.getElementById('savedList');
+  if(list.length === 0){
+    el.innerHTML = '<div style="color:var(--text-faint); font-size:12px;">Koi saved forecast nahi hai abhi.</div>';
+    return;
+  }
+  el.innerHTML = list.map((f,i)=>`
+    <div class="saved-item">
+      <div class="meta">
+        <div class="name">${escapeHtml(f.name)}</div>
+        <div class="date">${f.date}</div>
+      </div>
+      <div class="saved-actions">
+        <button class="btn btn-sm btn-ghost" data-load="${i}">Load</button>
+        <button class="btn btn-sm btn-danger" data-del="${i}">Del</button>
+      </div>
+    </div>
+  `).join('');
+
+  el.querySelectorAll('[data-load]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = parseInt(btn.dataset.load);
+      const f = getSavedForecasts()[idx];
+      sources = f.sources;
+      scenario = f.scenario;
+      document.getElementById('horizonRange').value = f.horizon;
+      document.getElementById('horizonVal').textContent = f.horizon + ' months';
+      document.getElementById('expenseInput').value = f.expenses || '';
+      document.querySelectorAll('#scenarioToggle button').forEach(b=>{
+        b.classList.toggle('active', b.dataset.val === scenario);
+      });
+      updateGrowthSliderFromScenario();
+      renderSources();
+      generateForecast();
+      toast('📂 Forecast loaded: ' + f.name);
+    });
+  });
+  el.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = parseInt(btn.dataset.del);
+      const list = getSavedForecasts();
+      list.splice(idx,1);
+      localStorage.setItem('ifh_saved_forecasts', JSON.stringify(list));
+      renderSavedList();
+      toast('🗑️ Forecast deleted');
+    });
+  });
+}
+
+document.getElementById('saveForecastBtn').addEventListener('click', ()=>{
+  if(sources.length === 0){ toast('⚠️ Pehle income sources add karein'); return; }
+  const name = prompt('Forecast ka naam dein:', 'Forecast ' + new Date().toLocaleDateString('en-IN'));
+  if(!name) return;
+  const list = getSavedForecasts();
+  list.push({
+    name,
+    date: new Date().toLocaleString('en-IN'),
+    sources: JSON.parse(JSON.stringify(sources)),
+    scenario,
+    horizon: document.getElementById('horizonRange').value,
+    expenses: document.getElementById('expenseInput').value
+  });
+  localStorage.setItem('ifh_saved_forecasts', JSON.stringify(list));
+  renderSavedList();
+  toast('✅ Forecast saved');
+});
+
+/* ===================== EXPORT ===================== */
+document.getElementById('exportCsvBtn').addEventListener('click', ()=>{
+  if(forecastData.length === 0){ toast('⚠️ Pehle forecast generate karein'); return; }
+  let csv = 'Month,Gross Income,Expenses,Net Income,Cumulative\n';
+  forecastData.forEach(d=>{
+    csv += `M${d.month},${Math.round(d.gross)},${Math.round(d.expenses)},${Math.round(d.net)},${Math.round(d.cumulative)}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'income-forecast.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('⬇️ CSV downloaded');
+});
+
+document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+
+/* ===================== MODALS ===================== */
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+document.getElementById('guideBtn').addEventListener('click', ()=> openModal('guideModal'));
+document.getElementById('apiKeyBtn').addEventListener('click', ()=>{
+  const stored = localStorage.getItem('ifh_api_key');
+  if(stored) document.getElementById('apiKeyInput').value = stored;
+  openModal('apiModal');
+});
+document.querySelectorAll('[data-close]').forEach(btn=>{
+  btn.addEventListener('click', ()=> closeModal(btn.dataset.close));
+});
+document.querySelectorAll('.modal-overlay').forEach(overlay=>{
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) overlay.classList.remove('show'); });
+});
+document.getElementById('saveApiKeyBtn').addEventListener('click', ()=>{
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if(key){
+    localStorage.setItem('ifh_api_key', key);
+    toast('✅ API key saved locally');
+  } else {
+    localStorage.removeItem('ifh_api_key');
+    toast('ℹ️ Demo/fallback mode active');
+  }
+  closeModal('apiModal');
+});
+
+/* ===================== INIT ===================== */
+function init(){
+  loadSourcesFromStorage();
+  if(sources.length === 0){
+    sources = [
+      { id: uid(), name: 'Web Development Projects', amount: 35000, category: 'freelance' },
+      { id: uid(), name: 'Monthly Retainer Client', amount: 15000, category: 'business' }
+    ];
+  }
+  renderSources();
+  renderSavedList();
+  updateGrowthSliderFromScenario();
+}
+init();
+</script>
+</body>
+</html>
